@@ -2,7 +2,6 @@ const hue = document.getElementById("hue");
 const sat = document.getElementById("saturation");
 const bright = document.getElementById("brightness");
 const mode = document.getElementById("mode");
-const autoFixToggle = document.getElementById("autoFixToggle");
 
 function updateLabels() {
   document.getElementById("hueVal").textContent = `${hue.value}°`;
@@ -29,7 +28,7 @@ function ensureContentScript(tabId, callback) {
   );
 }
 
-function sendMessage(action, extra = {}) {
+function sendMessage(action) {
   chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
     if (!tabs[0] || !tabs[0].id) return;
     const tabId = tabs[0].id;
@@ -42,8 +41,7 @@ function sendMessage(action, extra = {}) {
           hue: hue.value,
           saturation: sat.value,
           brightness: bright.value,
-          mode: mode.value,
-          ...extra
+          mode: mode.value
         },
         response => {
           if (chrome.runtime.lastError) {
@@ -57,17 +55,13 @@ function sendMessage(action, extra = {}) {
 
 document.getElementById("apply").addEventListener("click", () => sendMessage("apply"));
 document.getElementById("reset").addEventListener("click", () => sendMessage("reset"));
-
 document.getElementById("save").addEventListener("click", () => {
-  chrome.storage.sync.set(
-    {
-      hue: hue.value,
-      saturation: sat.value,
-      brightness: bright.value,
-      mode: mode.value
-    },
-    () => alert("Settings saved!")
-  );
+  chrome.storage.sync.set({
+    hue: hue.value,
+    saturation: sat.value,
+    brightness: bright.value,
+    mode: mode.value
+  }, () => alert("Settings saved!"));
 });
 
 chrome.storage.sync.get(["hue", "saturation", "brightness", "mode"], data => {
