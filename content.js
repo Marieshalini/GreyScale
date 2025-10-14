@@ -1,58 +1,89 @@
-chrome.storage.sync.get(["cvdType", "severity", "highlight"], (prefs) => {
-  applyEnhancements(prefs);
-});
-function applyEnhancements({ cvdType = "protanopia", severity = 80, highlight = false }) {
-  const elements = document.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6, a, button');
-  
-  elements.forEach(el => {
-    const style = window.getComputedStyle(el);
-    const color = rgbArray(style.color);
-    const bg = rgbArray(style.backgroundColor);
+// Prevent duplicate execution
+if (!window.colorAccessibilityInjected) {
+  window.colorAccessibilityInjected = true;
 
-    if (style.backgroundImage !== 'none') return;
+  let originalFilter = "";
+  let inlineSvgInserted = false;
 
-    const contrast = getContrast(color, bg);
-    if (contrast < 4.5) {
-      const adjusted = adjustContrast(color, bg);
-      el.style.color = adjusted;
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.action === "apply") {
+      applyFilters(msg);
+    } else if (msg.action === "reset") {
+      resetFilters();
     }
+    sendResponse({ status: "ok" });
   });
 
-  if (highlight) {
-    document.querySelectorAll('a, button, input, select').forEach(el => {
-      el.style.outline = '2px solid #FFD700';
-      el.style.outlineOffset = '2px';
-    });
+  // Main function
+  async function applyFilters({ hue, saturation, brightness, mode }) {
+    // Build HSB string (user customizations)
+    const hsb = `hue-rotate(${hue}deg) saturate(${saturation}%) brightness(${brightness}%)`;
+
+    // If normal: just apply HSB (no base colorblind filter)
+    if (mode === "normal" || !mode) {
+      document.documentElement.style.filter = hsb;
+      return;
+    }
+
+    // Ensure inline SVG defs are present (so url(#id) works reliably)
+    if (!inlineSvgInserted) {
+      try {
+        await insertInlineSVGDefs();
+        inlineSvgInserted = true;
+      } catch (e) {
+        console.warn("Failed to inline SVG defs:", e);
+        // Fallback: try external URL usage (may fail on some pages)
+      }
+    }
+
+    // Apply SVG filter first (base correction), then HSB
+    // Use url(#id) to refer to the inlined defs
+    const svgId = mode; // expecting "protanopia", "deuteranopia", "tritanopia"
+    const finalFilter = `url(#${svgId}) ${hsb}`;
+
+    document.documentElement.style.filter = finalFilter;
   }
-}
-function rgbArray(rgbStr) {
-  const m = rgbStr.match(/\d+/g);
-  return m ? m.map(Number) : [255,255,255];
-}
 
-function luminance(r,g,b){
-  const a = [r,g,b].map(v => {
-    v /= 255;
-    return (v <= 0.03928) ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
-  });
-  return 0.2126*a[0] + 0.7152*a[1] + 0.0722*a[2];
-}
+  function resetFilters() {
+    document.documentElement.style.filter = originalFilter;
+  }
 
-function getContrast(rgb1, rgb2){
-  const L1 = luminance(...rgb1);
-  const L2 = luminance(...rgb2);
-  return (Math.max(L1,L2)+0.05)/(Math.min(L1,L2)+0.05);
-}
+  // Fetch and insert the colorblind.svg content into the page's body as hidden element
+  async function insertInlineSVGDefs() {
+    // If already present, skip
+    if (document.getElementById("colorblind-svg-defs")) return;
 
-function adjustContrast(color, bg){
-  let [r,g,b] = color;
-  const c = getContrast(color,bg);
-  if (c < 4.5) {
-    if (luminance(...color) > luminance(...bg)) {
-      r = Math.max(0, r-30); g = Math.max(0, g-30); b = Math.max(0, b-30);
+    // Try to load the bundled svg file from extension
+    const url = chrome.runtime.getURL("filters/colorblind.svg");
+
+    // Fetch the SVG file content
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Could not fetch SVG defs: " + res.status);
+
+    const svgText = await res.text();
+
+    // Create a container and insert the SVG defs into it
+    const container = document.createElement("div");
+    container.id = "colorblind-svg-defs";
+    // hide but keep in DOM so url(#id) works
+    container.style.position = "absolute";
+    container.style.width = "0";
+    container.style.height = "0";
+    container.style.overflow = "hidden";
+    container.style.pointerEvents = "none";
+    container.style.opacity = "0";
+
+    // Put raw svg inside container. Important: we keep <svg><defs>... so IDs remain accessible.
+    container.innerHTML = svgText;
+    // Append to body (if no body yet, append to documentElement — but usually body exists)
+    if (document.body) {
+      document.body.appendChild(container);
     } else {
-      r = Math.min(255, r+30); g = Math.min(255, g+30); b = Math.min(255, b+30);
+      // fallback if body not present yet
+      document.documentElement.appendChild(container);
     }
+
+    // small delay to ensure defs available (usually immediate)
+    await new Promise(resolve => setTimeout(resolve, 10));
   }
-  return `rgb(${r},${g},${b})`;
 }

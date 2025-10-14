@@ -1,22 +1,31 @@
-
 {
   "manifest_version": 3,
-  "name": "ColorVision Enhancer",
+  "name": "Colorblind Accessibility",
   "version": "1.0",
-  "description": "Enhances website colors for color-blind users ensuring WCAG contrast compliance.",
+  "description": "Enhance website color visibility for colorblind users.",
   "permissions": ["storage", "activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_icon": {
-      "128": "icons/icon128.png"
-    }
+    "default_title": "Colorblind Accessibility"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
-  ]
+  ],
+  "web_accessible_resources": [
+  {
+    "resources": ["filters/colorblind.svg"],
+    "matches": ["<all_urls>"]
+  }
+],
+
+  "icons": {
+    "128": "icons/icon128.png"
+  }
 }
-
-

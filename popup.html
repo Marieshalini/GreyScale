@@ -1,29 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>ColorVision Enhancer</title>
+  <meta charset="UTF-8">
+  <title>Colorblind Accessibility</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h2>ColorVision Enhancer</h2>
+  <h2>Colorblind Accessibility</h2>
 
-  <label>Color Blindness Type:</label>
-  <select id="cvdType">
-    <option value="protanopia">Protanopia (Red-Blind)</option>
-    <option value="deuteranopia">Deuteranopia (Green-Blind)</option>
-    <option value="tritanopia">Tritanopia (Blue-Blind)</option>
+  <label>Mode:</label>
+  <select id="mode">
+    <option value="normal">Normal</option>
+    <option value="protanopia">Protanopia</option>
+    <option value="deuteranopia">Deuteranopia</option>
+    <option value="tritanopia">Tritanopia</option>
   </select>
 
-  <label>Severity:</label>
-  <input type="range" id="severity" min="0" max="100" value="80">
+  <label>Hue: <span id="hueVal">0°</span></label>
+  <input type="range" id="hue" min="0" max="360" value="0">
 
-  <label>
-    <input type="checkbox" id="highlight">
-    Highlight Clickable Elements
-  </label>
+  <label>Saturation: <span id="satVal">100%</span></label>
+  <input type="range" id="saturation" min="50" max="200" value="100">
 
-  <button id="save">Save & Apply</button>
+  <label>Brightness: <span id="brightVal">100%</span></label>
+  <input type="range" id="brightness" min="50" max="200" value="100">
+
+  <div class="buttons">
+    <button id="apply">Apply</button>
+    <button id="reset">Reset</button>
+    <button id="save">Save</button>
+  </div>
+
+  <h3>Palette Preview</h3>
+  <div id="palette">
+    <div class="color red"></div>
+    <div class="color green"></div>
+    <div class="color blue"></div>
+    <div class="color yellow"></div>
+    <div class="color magenta"></div>
+    <div class="color cyan"></div>
+    <div class="color gray"></div>
+    <div class="color black"></div>
+  </div>
 
   <script src="popup.js"></script>
 </body>
