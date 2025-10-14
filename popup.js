@@ -2,6 +2,7 @@ const hue = document.getElementById("hue");
 const sat = document.getElementById("saturation");
 const bright = document.getElementById("brightness");
 const mode = document.getElementById("mode");
+const autoFixToggle = document.getElementById("autoFixToggle");
 
 function updateLabels() {
   document.getElementById("hueVal").textContent = `${hue.value}°`;
@@ -28,7 +29,7 @@ function ensureContentScript(tabId, callback) {
   );
 }
 
-function sendMessage(action) {
+function sendMessage(action, extra = {}) {
   chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
     if (!tabs[0] || !tabs[0].id) return;
     const tabId = tabs[0].id;
@@ -41,7 +42,8 @@ function sendMessage(action) {
           hue: hue.value,
           saturation: sat.value,
           brightness: bright.value,
-          mode: mode.value
+          mode: mode.value,
+          ...extra
         },
         response => {
           if (chrome.runtime.lastError) {
@@ -55,13 +57,17 @@ function sendMessage(action) {
 
 document.getElementById("apply").addEventListener("click", () => sendMessage("apply"));
 document.getElementById("reset").addEventListener("click", () => sendMessage("reset"));
+
 document.getElementById("save").addEventListener("click", () => {
-  chrome.storage.sync.set({
-    hue: hue.value,
-    saturation: sat.value,
-    brightness: bright.value,
-    mode: mode.value
-  }, () => alert("Settings saved!"));
+  chrome.storage.sync.set(
+    {
+      hue: hue.value,
+      saturation: sat.value,
+      brightness: bright.value,
+      mode: mode.value
+    },
+    () => alert("Settings saved!")
+  );
 });
 
 chrome.storage.sync.get(["hue", "saturation", "brightness", "mode"], data => {
@@ -70,4 +76,47 @@ chrome.storage.sync.get(["hue", "saturation", "brightness", "mode"], data => {
   if (data.brightness) bright.value = data.brightness;
   if (data.mode) mode.value = data.mode;
   updateLabels();
+});
+
+// ===================== WCAG CHECK & LIST =====================
+
+document.getElementById("checkContrast").addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+    const tabId = tabs[0].id;
+    chrome.tabs.sendMessage(tabId, { action: "checkContrast" }, response => {
+      const list = document.getElementById("contrastList");
+      list.innerHTML = "";
+
+      if (response && response.failures && response.failures.length > 0) {
+        if (autoFixToggle.checked) {
+          sendMessage("autoFixAll");
+          list.innerHTML = "<li>✨ Auto-fixed all low-contrast elements.</li>";
+          return;
+        }
+
+        response.failures.forEach((item, i) => {
+          const li = document.createElement("li");
+          li.textContent = `#${i + 1} – Contrast: ${item.ratio.toFixed(2)} `;
+          li.style.cursor = "pointer";
+
+          const fixBtn = document.createElement("button");
+          fixBtn.textContent = "Fix";
+          fixBtn.style.marginLeft = "8px";
+          fixBtn.addEventListener("click", () => {
+            sendMessage("fixSingle", { index: i });
+            li.remove();
+          });
+
+          li.addEventListener("click", () => {
+            chrome.tabs.sendMessage(tabId, { action: "scrollTo", index: i });
+          });
+
+          li.appendChild(fixBtn);
+          list.appendChild(li);
+        });
+      } else {
+        list.innerHTML = "<li>✅ All text meets WCAG contrast standards.</li>";
+      }
+    });
+  });
 });

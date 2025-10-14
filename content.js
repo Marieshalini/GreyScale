@@ -1,46 +1,61 @@
-// Prevent duplicate execution
 if (!window.colorAccessibilityInjected) {
   window.colorAccessibilityInjected = true;
 
   let originalFilter = "";
   let inlineSvgInserted = false;
+  let contrastFailures = [];
+  let numberLabels = [];
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "apply") {
+      clearHighlights();
       applyFilters(msg);
-    } else if (msg.action === "reset") {
+      sendResponse({ status: "ok" });
+    } 
+    else if (msg.action === "reset") {
       resetFilters();
+      clearHighlights();
+      sendResponse({ status: "ok" });
+    } 
+    else if (msg.action === "checkContrast") {
+      const failures = checkContrast();
+      sendResponse({ failures: failures.map((f, i) => ({ index: i, tag: f.tag, ratio: f.ratio })) });
+    } 
+    else if (msg.action === "scrollTo") {
+      const target = contrastFailures[msg.index];
+      if (target && target.element) {
+        target.element.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.element.style.backgroundColor = "yellow";
+        setTimeout(() => target.element.style.backgroundColor = "", 1500);
+      }
     }
-    sendResponse({ status: "ok" });
+    else if (msg.action === "autoFixAll") {
+      fixAllContrastIssues();
+    }
+    else if (msg.action === "fixSingle") {
+      fixSingleContrast(msg.index);
+    }
   });
 
-  // Main function
   async function applyFilters({ hue, saturation, brightness, mode }) {
-    // Build HSB string (user customizations)
     const hsb = `hue-rotate(${hue}deg) saturate(${saturation}%) brightness(${brightness}%)`;
 
-    // If normal: just apply HSB (no base colorblind filter)
     if (mode === "normal" || !mode) {
       document.documentElement.style.filter = hsb;
       return;
     }
 
-    // Ensure inline SVG defs are present (so url(#id) works reliably)
     if (!inlineSvgInserted) {
       try {
         await insertInlineSVGDefs();
         inlineSvgInserted = true;
       } catch (e) {
         console.warn("Failed to inline SVG defs:", e);
-        // Fallback: try external URL usage (may fail on some pages)
       }
     }
 
-    // Apply SVG filter first (base correction), then HSB
-    // Use url(#id) to refer to the inlined defs
-    const svgId = mode; // expecting "protanopia", "deuteranopia", "tritanopia"
+    const svgId = mode; 
     const finalFilter = `url(#${svgId}) ${hsb}`;
-
     document.documentElement.style.filter = finalFilter;
   }
 
@@ -48,42 +63,133 @@ if (!window.colorAccessibilityInjected) {
     document.documentElement.style.filter = originalFilter;
   }
 
-  // Fetch and insert the colorblind.svg content into the page's body as hidden element
   async function insertInlineSVGDefs() {
-    // If already present, skip
     if (document.getElementById("colorblind-svg-defs")) return;
-
-    // Try to load the bundled svg file from extension
     const url = chrome.runtime.getURL("filters/colorblind.svg");
-
-    // Fetch the SVG file content
     const res = await fetch(url);
     if (!res.ok) throw new Error("Could not fetch SVG defs: " + res.status);
-
     const svgText = await res.text();
-
-    // Create a container and insert the SVG defs into it
     const container = document.createElement("div");
     container.id = "colorblind-svg-defs";
-    // hide but keep in DOM so url(#id) works
     container.style.position = "absolute";
     container.style.width = "0";
     container.style.height = "0";
     container.style.overflow = "hidden";
     container.style.pointerEvents = "none";
     container.style.opacity = "0";
-
-    // Put raw svg inside container. Important: we keep <svg><defs>... so IDs remain accessible.
     container.innerHTML = svgText;
-    // Append to body (if no body yet, append to documentElement — but usually body exists)
-    if (document.body) {
-      document.body.appendChild(container);
-    } else {
-      // fallback if body not present yet
-      document.documentElement.appendChild(container);
+    (document.body || document.documentElement).appendChild(container);
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+
+  // =================== WCAG CONTRAST CHECKER ===================
+  function getRGBValues(color) {
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.fillStyle = color;
+    const computed = ctx.fillStyle;
+    const rgb = computed.match(/\d+/g);
+    return rgb ? rgb.map(Number) : [0, 0, 0];
+  }
+
+  function relativeLuminance(rgb) {
+    const sRGB = rgb.map(v => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * sRGB[0] + 0.7152 * sRGB[1] + 0.0722 * sRGB[2];
+  }
+
+  function contrastRatio(fg, bg) {
+    const L1 = relativeLuminance(getRGBValues(fg));
+    const L2 = relativeLuminance(getRGBValues(bg));
+    return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+  }
+
+  function getBackgroundColor(element) {
+    while (element && element !== document) {
+      const bg = getComputedStyle(element).backgroundColor;
+      if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
+        return bg;
+      }
+      element = element.parentElement;
+    }
+    return "rgb(255,255,255)";
+  }
+
+  function checkContrast() {
+    clearHighlights();
+    contrastFailures = [];
+
+    const textElements = document.querySelectorAll("p, span, div, a, h1, h2, h3, h4, h5, h6");
+    textElements.forEach((el) => {
+      const style = getComputedStyle(el);
+      const fg = style.color;
+      const bg = getBackgroundColor(el);
+      const ratio = contrastRatio(fg, bg);
+
+      if (ratio < 4.5) {
+        const index = contrastFailures.length + 1;
+        contrastFailures.push({ element: el, tag: el.tagName.toLowerCase(), ratio });
+        el.style.outline = "2px dashed deeppink";
+
+        const rect = el.getBoundingClientRect();
+        const label = document.createElement("span");
+        label.textContent = index;
+        label.style.position = "absolute";
+        label.style.left = `${window.scrollX + rect.left}px`;
+        label.style.top = `${window.scrollY + rect.top - 20}px`;
+        label.style.background = "deeppink";
+        label.style.color = "white";
+        label.style.fontSize = "10px";
+        label.style.padding = "2px 4px";
+        label.style.borderRadius = "4px";
+        label.style.zIndex = "999999";
+        label.className = "contrast-label";
+        document.body.appendChild(label);
+        numberLabels.push(label);
+      }
+    });
+    return contrastFailures;
+  }
+
+  function clearHighlights() {
+    contrastFailures.forEach(f => {
+      if (f.element) f.element.style.outline = "";
+    });
+    contrastFailures = [];
+    numberLabels.forEach(label => label.remove());
+    numberLabels = [];
+  }
+
+  // =================== FIXING LOGIC ===================
+  function fixAllContrastIssues() {
+    contrastFailures.forEach((f, i) => fixSingleContrast(i));
+  }
+
+  function fixSingleContrast(index) {
+    const fail = contrastFailures[index];
+    if (!fail || !fail.element) return;
+
+    const el = fail.element;
+    const style = getComputedStyle(el);
+    const fg = getRGBValues(style.color);
+    const bg = getRGBValues(getBackgroundColor(el));
+    const Lbg = relativeLuminance(bg);
+
+    let [r, g, b] = fg;
+    let step = Lbg > 0.5 ? -10 : 10; // darken if light bg, lighten if dark bg
+
+    for (let i = 0; i < 20; i++) {
+      const newColor = `rgb(${r}, ${g}, ${b})`;
+      const ratio = contrastRatio(newColor, `rgb(${bg[0]},${bg[1]},${bg[2]})`);
+      if (ratio >= 4.5) break;
+      r = Math.min(255, Math.max(0, r + step));
+      g = Math.min(255, Math.max(0, g + step));
+      b = Math.min(255, Math.max(0, b + step));
     }
 
-    // small delay to ensure defs available (usually immediate)
-    await new Promise(resolve => setTimeout(resolve, 10));
+    el.style.color = `rgb(${r}, ${g}, ${b})`;
+    el.style.outline = "";
+    if (numberLabels[index]) numberLabels[index].remove();
   }
 }
