@@ -1,73 +1,60 @@
-const hue = document.getElementById("hue");
-const sat = document.getElementById("saturation");
-const bright = document.getElementById("brightness");
-const mode = document.getElementById("mode");
+document.addEventListener("DOMContentLoaded", () => {
+  const mode = document.getElementById("mode");
+  const hue = document.getElementById("hue");
+  const saturation = document.getElementById("saturation");
+  const brightness = document.getElementById("brightness");
 
-function updateLabels() {
-  document.getElementById("hueVal").textContent = `${hue.value}°`;
-  document.getElementById("satVal").textContent = `${sat.value}%`;
-  document.getElementById("brightVal").textContent = `${bright.value}%`;
-}
-[hue, sat, bright].forEach(input => input.addEventListener("input", updateLabels));
-updateLabels();
+  const hueVal = document.getElementById("hueVal");
+  const satVal = document.getElementById("satVal");
+  const brightVal = document.getElementById("brightVal");
 
-function ensureContentScript(tabId, callback) {
-  chrome.scripting.executeScript(
-    {
-      target: { tabId },
-      files: ["content.js"]
-    },
-    () => {
-      if (chrome.runtime.lastError) {
-        console.warn("Injection failed:", chrome.runtime.lastError.message);
-        alert("This page doesn't allow color adjustment.");
-      } else {
-        callback();
-      }
-    }
-  );
-}
+  function updateLabels() {
+    hueVal.textContent = `${hue.value}°`;
+    satVal.textContent = `${saturation.value}%`;
+    brightVal.textContent = `${brightness.value}%`;
+  }
 
-function sendMessage(action) {
-  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-    if (!tabs[0] || !tabs[0].id) return;
-    const tabId = tabs[0].id;
-
-    ensureContentScript(tabId, () => {
-      chrome.tabs.sendMessage(
-        tabId,
-        {
-          action,
-          hue: hue.value,
-          saturation: sat.value,
-          brightness: bright.value,
-          mode: mode.value
-        },
-        response => {
-          if (chrome.runtime.lastError) {
-            console.warn("Error sending message:", chrome.runtime.lastError.message);
-          }
+  function sendMessage(msg) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs[0]) return;
+      chrome.tabs.sendMessage(tabs[0].id, msg, () => {
+        if (chrome.runtime.lastError) {
+          console.warn("Message not delivered:", chrome.runtime.lastError.message);
         }
-      );
+      });
     });
+  }
+
+  function sendLiveUpdate() {
+    sendMessage({
+      action: "apply",
+      hue: hue.value,
+      saturation: saturation.value,
+      brightness: brightness.value,
+      mode: mode.value,
+    });
+  }
+
+  // Live update events
+  hue.addEventListener("input", () => { updateLabels(); sendLiveUpdate(); });
+  saturation.addEventListener("input", () => { updateLabels(); sendLiveUpdate(); });
+  brightness.addEventListener("input", () => { updateLabels(); sendLiveUpdate(); });
+  mode.addEventListener("change", sendLiveUpdate);
+
+  // Apply / Reset buttons
+  document.getElementById("apply").addEventListener("click", sendLiveUpdate);
+  document.getElementById("reset").addEventListener("click", () => {
+    mode.value = "normal";
+    hue.value = 0;
+    saturation.value = 100;
+    brightness.value = 100;
+    updateLabels();
+    sendMessage({ action: "reset" });
   });
-}
 
-document.getElementById("apply").addEventListener("click", () => sendMessage("apply"));
-document.getElementById("reset").addEventListener("click", () => sendMessage("reset"));
-document.getElementById("save").addEventListener("click", () => {
-  chrome.storage.sync.set({
-    hue: hue.value,
-    saturation: sat.value,
-    brightness: bright.value,
-    mode: mode.value
-  }, () => alert("Settings saved!"));
-});
+  document.getElementById("save").addEventListener("click", () => {
+    alert("Settings saved (coming soon!)");
+  });
 
-chrome.storage.sync.get(["hue", "saturation", "brightness", "mode"], data => {
-  if (data.hue) hue.value = data.hue;
-  if (data.saturation) sat.value = data.saturation;
-  if (data.brightness) bright.value = data.brightness;
-  if (data.mode) mode.value = data.mode;
   updateLabels();
 });
