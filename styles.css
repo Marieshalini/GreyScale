@@ -1,57 +1,72 @@
-/* --- General Body and Font --- */
+/* === General Styling === */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  padding: 16px;
-  width: 280px;
-  background: linear-gradient(to bottom, #f7f7f7, #e8e8e8); /* Soft gray gradient */
-  color: #333;
+  font-family: "Poppins", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  width: 300px;
+  padding: 18px;
+  margin: 0;
+  color: #2a2a2a;
+  background: linear-gradient(145deg, #f5f3ff, #fdf6f0, #f0fbff); /* Soft pastel gradient */
+  background-size: 400% 400%;
+  animation: subtleMove 12s ease infinite;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+@keyframes subtleMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 h2 {
   text-align: center;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
   color: #1a1a1a;
-  margin-top: 0;
-  margin-bottom: 16px;
 }
 
 h3 {
   color: #444;
-  margin-top: 20px;
+  margin-top: 18px;
   margin-bottom: 8px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e0e0e0;
   padding-bottom: 4px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* --- Controls and Labels --- */
-.control-group {
-  margin-bottom: 12px;
-}
-
+/* === Labels & Controls === */
 label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  font-size: 13px;
   margin-bottom: 6px;
+  color: #333;
 }
 
 select {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* --- Custom Sliders --- */
+/* === Range Sliders === */
 input[type="range"] {
   width: 100%;
   height: 6px;
-  background: #d3d3d3;
-  border-radius: 5px;
+  background: linear-gradient(to right, #c7d2fe, #a5f3fc);
+  border-radius: 10px;
   outline: none;
-  opacity: 0.7;
-  transition: opacity .2s;
+  opacity: 0.8;
+  transition: opacity 0.2s, background 0.3s;
 }
 
 input[type="range"]:hover {
@@ -63,39 +78,32 @@ input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 18px;
   height: 18px;
-  background: #007bff; /* Vibrant blue handle */
+  background: #6366f1; /* Indigo tone */
   border-radius: 50%;
-  cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  cursor: pointer;
 }
 
 input[type="range"]::-moz-range-thumb {
   width: 18px;
   height: 18px;
-  background: #007bff;
+  background: #6366f1;
   border-radius: 50%;
-  cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-/* --- Buttons --- */
-.buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Two-column layout */
-  gap: 8px;
-  margin-top: 16px;
-}
-
-button {
-  padding: 10px;
-  font-size: 14px;
-  font-weight: bold;
-  border: none;
-  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+}
+
+/* === Buttons === */
+button {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 button:hover {
@@ -103,55 +111,61 @@ button:hover {
 }
 
 #reset, #deleteProfile {
-  background-color: #f0f0f0;
+  background: #f3f4f6;
   color: #333;
+  border: 1px solid #e5e7eb;
 }
+
 #reset:hover, #deleteProfile:hover {
-  background-color: #e0e0e0;
+  background: #e5e7eb;
 }
 
 #save, #loadProfile {
-  background-color: #007bff;
+  background: linear-gradient(135deg, #818cf8, #38bdf8);
   color: white;
+  box-shadow: 0 2px 6px rgba(99,102,241,0.4);
 }
+
 #save:hover, #loadProfile:hover {
-  background-color: #0056b3;
+  background: linear-gradient(135deg, #6366f1, #0ea5e9);
 }
 
-/* --- Profile Manager --- */
+/* === Profile Section === */
 .profile-manager {
-    display: flex;
-    gap: 8px;
-}
-.profile-manager select {
-    flex-grow: 1; /* Allows select to take available space */
-}
-.profile-manager button {
-    padding: 8px; /* Slightly smaller for this section */
-}
-
-/* --- Color Palette Preview --- */
-#palette {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+  display: flex;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
-.color {
-  width: 100%;
-  padding-bottom: 100%; /* Creates a square aspect ratio */
-  border-radius: 6px;
-  border: 1px solid rgba(0,0,0,0.1);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+.profile-manager select {
+  flex: 1;
 }
 
-/* (Color definitions remain the same) */
-.red { background: red; }
-.green { background: green; }
-.blue { background: blue; }
-.yellow { background: yellow; }
-.magenta { background: magenta; }
-.cyan { background: cyan; }
-.gray { background: gray; }
-.black { background: black; }
+.profile-manager button {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+/* === List Styling === */
+ul {
+  padding-left: 20px;
+  font-size: 13px;
+  color: #333;
+}
+
+li {
+  margin-bottom: 6px;
+  list-style: disc;
+}
+
+/* === Toggle === */
+#autoFixToggle {
+  margin-right: 6px;
+}
+
+/* === Section Divider === */
+hr {
+  border: 0;
+  border-top: 1px solid #ddd;
+  margin: 12px 0;
+}
