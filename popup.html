@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Colorblind Accessibility</title>
+  <title>Chroma Correct</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     body { font-family: sans-serif; padding: 15px; width: 250px; }
@@ -50,7 +50,13 @@
     <button id="reset">Reset</button>
     <button id="save">Save</button>
   </div>
-
+  <hr> 
+  <h3>Saved Profiles</h3>
+  <div class="profile-manager">
+    <select id="profiles"></select>
+    <button id="loadProfile">Load</button>
+    <button id="deleteProfile">Delete</button>
+  </div>
   <h3>Palette Preview</h3>
   <div id="palette">
     <div class="color red"></div>
