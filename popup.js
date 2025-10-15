@@ -94,9 +94,28 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   if (applyBtn) applyBtn.addEventListener("click", () => sendMessage("apply"));
-  if (resetBtn) resetBtn.addEventListener("click", () => sendMessage("reset"));
 
-  // --- Save single quick preset (legacy your version) ---
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      // Reset all UI values
+      hue.value = 0;
+      sat.value = 100;
+      bright.value = 100;
+      mode.value = "normal";
+      updateLabels();
+
+      // Send reset message
+      sendMessage("reset");
+
+      // Clear last used & saved state in storage
+      chrome.storage.sync.remove(["lastUsed", "hue", "saturation", "brightness", "mode"], () => {
+        console.log("All settings cleared.");
+      });
+
+    });
+  }
+
+  // --- Save a profile ---
   if (saveBtn) {
     saveBtn.addEventListener("click", () => {
       const now = new Date();
@@ -161,14 +180,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === 4. LOAD SAVED SETTINGS ===
-  chrome.storage.sync.get(["hue", "saturation", "brightness", "mode"], data => {
-    if (data.hue) hue.value = data.hue;
-    if (data.saturation) sat.value = data.saturation;
-    if (data.brightness) bright.value = data.brightness;
-    if (data.mode) mode.value = data.mode;
-    updateLabels();
-  });
-
   chrome.storage.sync.get(["lastUsed"], (data) => {
     const lastUsed = data.lastUsed;
     if (lastUsed) {
@@ -176,6 +187,11 @@ document.addEventListener("DOMContentLoaded", () => {
       sat.value = lastUsed.saturation;
       bright.value = lastUsed.brightness;
       mode.value = lastUsed.mode;
+    } else {
+      hue.value = 0;
+      sat.value = 100;
+      bright.value = 100;
+      mode.value = "normal";
     }
     updateLabels();
     sendMessage("apply");

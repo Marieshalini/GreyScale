@@ -49,7 +49,6 @@ if (!window.colorAccessibilityInjected) {
 
     if (!inlineSvgInserted) {
       try {
-        // include both definitions just in case
         await insertSVGDefs();
         await insertInlineSVGDefs();
         inlineSvgInserted = true;
@@ -63,11 +62,25 @@ if (!window.colorAccessibilityInjected) {
     document.documentElement.style.filter = finalFilter;
   }
 
+  // ✅ FIXED RESET FUNCTION (clears everything fully)
   function resetFilters() {
-    document.documentElement.style.filter = originalFilter;
+    // remove filters
+    document.documentElement.style.filter = "";
+
+    // restore all text colors modified during contrast fixing
+    contrastFailures.forEach((f) => {
+      if (f.element) f.element.style.color = "";
+    });
+
+    // clear highlights & labels
+    clearHighlights();
+
+    // reset arrays
+    contrastFailures = [];
+    numberLabels = [];
   }
 
-  // =================== GITHUB VERSION ===================
+  // =================== SVG DEFINITIONS ===================
   async function insertSVGDefs() {
     if (document.getElementById("colorblind-svg-defs")) return;
     const url = chrome.runtime.getURL("filters/colorblind.svg");
@@ -88,7 +101,6 @@ if (!window.colorAccessibilityInjected) {
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
 
-  // =================== YOUR VERSION ===================
   async function insertInlineSVGDefs() {
     if (document.getElementById("colorblind-svg-defs-inline")) return;
     const url = chrome.runtime.getURL("filters/colorblind.svg");
@@ -212,14 +224,11 @@ if (!window.colorAccessibilityInjected) {
     const Lbg = relativeLuminance(bg);
 
     let [r, g, b] = fg;
-    let step = Lbg > 0.5 ? -10 : 10; // darken if light bg, lighten if dark bg
+    let step = Lbg > 0.5 ? -10 : 10;
 
     for (let i = 0; i < 20; i++) {
       const newColor = `rgb(${r}, ${g}, ${b})`;
-      const ratio = contrastRatio(
-        newColor,
-        `rgb(${bg[0]},${bg[1]},${bg[2]})`
-      );
+      const ratio = contrastRatio(newColor, `rgb(${bg[0]},${bg[1]},${bg[2]})`);
       if (ratio >= 4.5) break;
       r = Math.min(255, Math.max(0, r + step));
       g = Math.min(255, Math.max(0, g + step));
