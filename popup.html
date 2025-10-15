@@ -4,39 +4,52 @@
   <meta charset="UTF-8">
   <title>Colorblind Accessibility</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    body { font-family: sans-serif; padding: 15px; width: 250px; }
+    label { display: block; margin-top: 10px; }
+    input[type="range"] { width: 100%; }
+    select { width: 100%; margin-top: 5px; }
+    .buttons { margin-top: 15px; display: flex; gap: 5px; justify-content: space-between; }
+    #palette { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .color { width: 20px; height: 20px; border: 1px solid #ccc; }
+    .red { background: red; }
+    .green { background: green; }
+    .blue { background: blue; }
+    .yellow { background: yellow; }
+    .magenta { background: magenta; }
+    .cyan { background: cyan; }
+    .gray { background: gray; }
+    .black { background: black; }
+  </style>
 </head>
 <body>
   <h2>Colorblind Accessibility</h2>
 
-  <label>Mode:</label>
-  <select id="mode">
-    <option value="normal">Normal</option>
-    <option value="protanopia">Protanopia</option>
-    <option value="deuteranopia">Deuteranopia</option>
-    <option value="tritanopia">Tritanopia</option>
-  </select>
+  <label>Mode:
+    <select id="mode">
+      <option value="normal">Normal</option>
+      <option value="protanopia">Protanopia</option>
+      <option value="deuteranopia">Deuteranopia</option>
+      <option value="tritanopia">Tritanopia</option>
+    </select>
+  </label>
 
-  <label>Hue: <span id="hueVal">0°</span></label>
-  <input type="range" id="hue" min="0" max="360" value="0">
+  <label>Hue: <span id="hueVal">0°</span>
+    <input type="range" id="hue" min="0" max="360" value="0">
+  </label>
 
-  <label>Saturation: <span id="satVal">100%</span></label>
-  <input type="range" id="saturation" min="50" max="200" value="100">
+  <label>Saturation: <span id="satVal">100%</span>
+    <input type="range" id="saturation" min="50" max="200" value="100">
+  </label>
 
-  <label>Brightness: <span id="brightVal">100%</span></label>
-  <input type="range" id="brightness" min="50" max="200" value="100">
+  <label>Brightness: <span id="brightVal">100%</span>
+    <input type="range" id="brightness" min="50" max="200" value="100">
+  </label>
 
   <div class="buttons">
-    <button id="apply">Apply</button>
     <button id="reset">Reset</button>
     <button id="save">Save</button>
   </div>
-
-  <label>
-    <input type="checkbox" id="autoFixToggle"> Auto-Fix Contrast
-  </label>
-
-  <h3>Low Contrast Elements</h3>
-  <ul id="contrastList" style="max-height:100px;overflow-y:auto;padding-left:15px;"></ul>
 
   <h3>Palette Preview</h3>
   <div id="palette">
