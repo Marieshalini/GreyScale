@@ -8,6 +8,7 @@
 <body>
   <h2>Colorblind Accessibility</h2>
 
+
   <label>Mode:</label>
   <select id="mode">
     <option value="normal">Normal</option>
@@ -16,27 +17,35 @@
     <option value="tritanopia">Tritanopia</option>
   </select>
 
+
   <label>Hue: <span id="hueVal">0°</span></label>
   <input type="range" id="hue" min="0" max="360" value="0">
+
 
   <label>Saturation: <span id="satVal">100%</span></label>
   <input type="range" id="saturation" min="50" max="200" value="100">
 
+
   <label>Brightness: <span id="brightVal">100%</span></label>
   <input type="range" id="brightness" min="50" max="200" value="100">
+
 
   <div class="buttons">
     <button id="apply">Apply</button>
     <button id="reset">Reset</button>
     <button id="save">Save</button>
+    <button id="checkContrast">Check Contrast</button>
   </div>
+
 
   <label>
     <input type="checkbox" id="autoFixToggle"> Auto-Fix Contrast
   </label>
 
+
   <h3>Low Contrast Elements</h3>
   <ul id="contrastList" style="max-height:100px;overflow-y:auto;padding-left:15px;"></ul>
+
 
   <h3>Palette Preview</h3>
   <div id="palette">
@@ -49,6 +58,7 @@
     <div class="color gray"></div>
     <div class="color black"></div>
   </div>
+
 
   <script src="popup.js"></script>
 </body>
