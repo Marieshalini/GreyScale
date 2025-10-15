@@ -2,13 +2,31 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Colorblind Accessibility</title>
+  <title>Chroma Correct</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    body { font-family: sans-serif; padding: 15px; width: 250px; }
+    label { display: block; margin-top: 10px; }
+    input[type="range"] { width: 100%; }
+    select { width: 100%; margin-top: 5px; }
+    .buttons { margin-top: 15px; display: flex; gap: 5px; justify-content: space-between; flex-wrap: wrap; }
+    #palette { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .color { width: 20px; height: 20px; border: 1px solid #ccc; }
+    .red { background: red; }
+    .green { background: green; }
+    .blue { background: blue; }
+    .yellow { background: yellow; }
+    .magenta { background: magenta; }
+    .cyan { background: cyan; }
+    .gray { background: gray; }
+    .black { background: black; }
+    hr { margin: 15px 0; }
+  </style>
 </head>
 <body>
   <h2>Colorblind Accessibility</h2>
 
-
+  <!-- Mode Selector -->
   <label>Mode:</label>
   <select id="mode">
     <option value="normal">Normal</option>
@@ -17,36 +35,46 @@
     <option value="tritanopia">Tritanopia</option>
   </select>
 
-
+  <!-- Sliders -->
   <label>Hue: <span id="hueVal">0°</span></label>
   <input type="range" id="hue" min="0" max="360" value="0">
-
 
   <label>Saturation: <span id="satVal">100%</span></label>
   <input type="range" id="saturation" min="50" max="200" value="100">
 
-
   <label>Brightness: <span id="brightVal">100%</span></label>
   <input type="range" id="brightness" min="50" max="200" value="100">
 
-
+  <!-- Buttons -->
   <div class="buttons">
-    <button id="apply">Apply</button>
     <button id="reset">Reset</button>
     <button id="save">Save</button>
     <button id="checkContrast">Check Contrast</button>
   </div>
 
-
+  <!-- Auto-Fix & Contrast List -->
   <label>
     <input type="checkbox" id="autoFixToggle"> Auto-Fix Contrast
   </label>
 
-
   <h3>Low Contrast Elements</h3>
   <ul id="contrastList" style="max-height:100px;overflow-y:auto;padding-left:15px;"></ul>
 
+  <hr>
 
+  <!-- Saved Profiles -->
+  <h3>Saved Profiles</h3>
+  <div class="profile-manager">
+    <select id="profiles" style="width:100%;"></select>
+    <div style="display:flex; gap:5px; margin-top:5px;">
+      <button id="loadProfile" style="flex:1;">Load</button>
+      <button id="deleteProfile" style="flex:1;">Delete</button>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- Palette -->
   <h3>Palette Preview</h3>
   <div id="palette">
     <div class="color red"></div>
@@ -58,7 +86,6 @@
     <div class="color gray"></div>
     <div class="color black"></div>
   </div>
-
 
   <script src="popup.js"></script>
 </body>

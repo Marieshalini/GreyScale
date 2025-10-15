@@ -1,42 +1,152 @@
+/* --- General Body and Font --- */
 body {
-  font-family: Arial, sans-serif;
-  padding: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  padding: 16px;
   width: 280px;
+  background: linear-gradient(to bottom, #f7f7f7, #e8e8e8); /* Soft gray gradient */
+  color: #333;
 }
 
 h2 {
   text-align: center;
+  color: #1a1a1a;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+h3 {
+  color: #444;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+}
+
+/* --- Controls and Labels --- */
+.control-group {
+  margin-bottom: 12px;
 }
 
 label {
-  display: block;
-  margin-top: 8px;
-}
-
-input[type="range"] {
-  width: 100%;
-}
-
-.buttons {
   display: flex;
   justify-content: space-between;
-  margin-top: 10px;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 6px;
 }
 
+select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: white;
+}
+
+/* --- Custom Sliders --- */
+input[type="range"] {
+  width: 100%;
+  height: 6px;
+  background: #d3d3d3;
+  border-radius: 5px;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity .2s;
+}
+
+input[type="range"]:hover {
+  opacity: 1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: #007bff; /* Vibrant blue handle */
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* --- Buttons --- */
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two-column layout */
+  gap: 8px;
+  margin-top: 16px;
+}
+
+button {
+  padding: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+#reset, #deleteProfile {
+  background-color: #f0f0f0;
+  color: #333;
+}
+#reset:hover, #deleteProfile:hover {
+  background-color: #e0e0e0;
+}
+
+#save, #loadProfile {
+  background-color: #007bff;
+  color: white;
+}
+#save:hover, #loadProfile:hover {
+  background-color: #0056b3;
+}
+
+/* --- Profile Manager --- */
+.profile-manager {
+    display: flex;
+    gap: 8px;
+}
+.profile-manager select {
+    flex-grow: 1; /* Allows select to take available space */
+}
+.profile-manager button {
+    padding: 8px; /* Slightly smaller for this section */
+}
+
+/* --- Color Palette Preview --- */
 #palette {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
+  grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+  gap: 8px;
   margin-top: 10px;
 }
 
 .color {
-  width: 30px;
-  height: 30px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+  width: 100%;
+  padding-bottom: 100%; /* Creates a square aspect ratio */
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
+/* (Color definitions remain the same) */
 .red { background: red; }
 .green { background: green; }
 .blue { background: blue; }
