@@ -24,15 +24,23 @@
   </style>
 </head>
 <body>
-  <h2>Colorblind Accessibility</h2>
+  <h2>See True</h2>
 
-  <!-- Mode Selector -->
-  <label>Mode:</label>
-  <select id="mode">
-    <option value="normal">Normal</option>
+  
+  <label for="simulationMode">🎨 Simulation Mode</label>
+  <select id="simulationMode">
+    <option value="none">None</option>
     <option value="protanopia">Protanopia</option>
     <option value="deuteranopia">Deuteranopia</option>
     <option value="tritanopia">Tritanopia</option>
+  </select>
+
+  <label for="correctionMode">🧩 Correction Mode (Daltonization)</label>
+  <select id="correctionMode">
+    <option value="none">None</option>
+    <option value="protanopia">Protanopia Correction</option>
+    <option value="deuteranopia">Deuteranopia Correction</option>
+    <option value="tritanopia">Tritanopia Correction</option>
   </select>
 
   <!-- Sliders -->

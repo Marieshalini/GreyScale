@@ -3,7 +3,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const hue = document.getElementById("hue");
   const sat = document.getElementById("saturation");
   const bright = document.getElementById("brightness");
-  const mode = document.getElementById("mode");
+
+  const simulationMode = document.getElementById("simulationMode"); // 👈 added separate simulation dropdown
+  const correctionMode = document.getElementById("correctionMode"); // 👈 added separate correction dropdown
+
   const autoFixToggle = document.getElementById("autoFixToggle");
 
   const hueVal = document.getElementById("hueVal");
@@ -56,7 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
             hue: hue.value,
             saturation: sat.value,
             brightness: bright.value,
-            mode: mode.value,
+            simulationMode: simulationMode?.value || "none",
+            correctionMode: correctionMode?.value || "none",
             ...extra
           },
           () => {
@@ -84,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === 3. EVENT LISTENERS ===
-  [hue, sat, bright, mode].forEach(input => {
+  [hue, sat, bright, simulationMode, correctionMode].forEach(input => {
     if (input) {
       input.addEventListener("input", () => {
         updateLabels();
@@ -95,27 +99,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (applyBtn) applyBtn.addEventListener("click", () => sendMessage("apply"));
 
+  // === RESET BUTTON ===
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
       // Reset all UI values
       hue.value = 0;
       sat.value = 100;
       bright.value = 100;
-      mode.value = "normal";
+      simulationMode.value = "none";
+      correctionMode.value = "none";
       updateLabels();
 
-      // Send reset message
+      // Send reset to content.js
       sendMessage("reset");
 
-      // Clear last used & saved state in storage
-      chrome.storage.sync.remove(["lastUsed", "hue", "saturation", "brightness", "mode"], () => {
+      // Clear last used & saved state
+      chrome.storage.sync.remove(["lastUsed", "hue", "saturation", "brightness", "simulationMode", "correctionMode"], () => {
         console.log("All settings cleared.");
       });
-
     });
   }
 
-  // --- Save a profile ---
+  // === SAVE PROFILE ===
   if (saveBtn) {
     saveBtn.addEventListener("click", () => {
       const now = new Date();
@@ -127,7 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
         hue: hue.value,
         saturation: sat.value,
         brightness: bright.value,
-        mode: mode.value
+        simulationMode: simulationMode.value,
+        correctionMode: correctionMode.value
       };
 
       chrome.storage.sync.get({ savedProfiles: {} }, (data) => {
@@ -141,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Load selected profile ---
+  // === LOAD PROFILE ===
   if (loadProfileBtn) {
     loadProfileBtn.addEventListener("click", () => {
       const profileName = profilesDropdown?.value;
@@ -153,7 +159,8 @@ document.addEventListener("DOMContentLoaded", () => {
           hue.value = profileSettings.hue;
           sat.value = profileSettings.saturation;
           bright.value = profileSettings.brightness;
-          mode.value = profileSettings.mode;
+          simulationMode.value = profileSettings.simulationMode || "none";
+          correctionMode.value = profileSettings.correctionMode || "none";
           updateLabels();
           sendMessage("apply");
         }
@@ -161,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Delete selected profile ---
+  // === DELETE PROFILE ===
   if (deleteProfileBtn) {
     deleteProfileBtn.addEventListener("click", () => {
       const profileName = profilesDropdown?.value;
@@ -186,18 +193,20 @@ document.addEventListener("DOMContentLoaded", () => {
       hue.value = lastUsed.hue;
       sat.value = lastUsed.saturation;
       bright.value = lastUsed.brightness;
-      mode.value = lastUsed.mode;
+      simulationMode.value = lastUsed.simulationMode || "none";
+      correctionMode.value = lastUsed.correctionMode || "none";
     } else {
       hue.value = 0;
       sat.value = 100;
       bright.value = 100;
-      mode.value = "normal";
+      simulationMode.value = "none";
+      correctionMode.value = "none";
     }
     updateLabels();
     sendMessage("apply");
   });
 
-  [hue, sat, bright, mode].forEach(el => {
+  [hue, sat, bright, simulationMode, correctionMode].forEach(el => {
     if (el) {
       el.addEventListener("change", () => {
         chrome.storage.sync.set({
@@ -205,7 +214,8 @@ document.addEventListener("DOMContentLoaded", () => {
             hue: hue.value,
             saturation: sat.value,
             brightness: bright.value,
-            mode: mode.value
+            simulationMode: simulationMode.value,
+            correctionMode: correctionMode.value
           }
         });
       });
@@ -214,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadProfilesList();
 
-  // === 5. WCAG CONTRAST CHECK & AUTO FIX ===
+  // === 5. WCAG CONTRAST CHECK ===
   if (checkContrastBtn) {
     checkContrastBtn.addEventListener("click", () => {
       chrome.tabs.query({ active: true, currentWindow: true }, tabs => {

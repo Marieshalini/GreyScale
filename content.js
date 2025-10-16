@@ -6,6 +6,7 @@ if (!window.colorAccessibilityInjected) {
   let contrastFailures = [];
   let numberLabels = [];
 
+  // === MESSAGE LISTENER ===
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "apply") {
       clearHighlights();
@@ -25,12 +26,7 @@ if (!window.colorAccessibilityInjected) {
         })),
       });
     } else if (msg.action === "scrollTo") {
-      const target = contrastFailures[msg.index];
-      if (target && target.element) {
-        target.element.scrollIntoView({ behavior: "smooth", block: "center" });
-        target.element.style.backgroundColor = "yellow";
-        setTimeout(() => (target.element.style.backgroundColor = ""), 1500);
-      }
+      scrollToFailure(msg.index);
     } else if (msg.action === "autoFixAll") {
       fixAllContrastIssues();
     } else if (msg.action === "fixSingle") {
@@ -38,54 +34,90 @@ if (!window.colorAccessibilityInjected) {
     }
   });
 
-  // =================== APPLY FILTERS ===================
-  async function applyFilters({ hue, saturation, brightness, mode }) {
-    const hsb = `hue-rotate(${hue}deg) saturate(${saturation}%) brightness(${brightness}%)`;
-
-    if (mode === "normal" || !mode) {
-      document.documentElement.style.filter = hsb;
-      return;
+  // === APPLY FILTERS ===
+  async function applyFilters({ hue, saturation, brightness, mode, simulationMode, correctionMode }) {
+    // Backward compatibility for old "mode"
+    if (!simulationMode && mode) {
+      simulationMode = mode === "normal" ? "none" : mode;
     }
 
+    const hsb = `hue-rotate(${hue}deg) saturate(${saturation}%) brightness(${brightness}%)`;
+
+    // Inject SVG filters if not already done
     if (!inlineSvgInserted) {
       try {
         await insertSVGDefs();
         await insertInlineSVGDefs();
-        inlineSvgInserted = true;
       } catch (e) {
         console.warn("SVG defs load failed:", e);
       }
+      inlineSvgInserted = true;
     }
 
-    const svgId = mode;
-    const finalFilter = `url(#${svgId}) ${hsb}`;
+    const simFilters = {
+      protanopia: "url(#protanopia)",
+      deuteranopia: "url(#deuteranopia)",
+      tritanopia: "url(#tritanopia)",
+    };
+
+    const correctionMatrices = {
+      protanopia: "contrast(120%) saturate(120%) hue-rotate(15deg)",
+      deuteranopia: "contrast(120%) saturate(110%) hue-rotate(-15deg)",
+      tritanopia: "contrast(120%) saturate(130%) hue-rotate(25deg)",
+    };
+
+    let pieces = [];
+
+    if (simulationMode && simulationMode !== "none") {
+      const s = simFilters[simulationMode];
+      if (s) pieces.push(s);
+    }
+
+    if (correctionMode && correctionMode !== "none") {
+      const c = correctionMatrices[correctionMode];
+      if (c) pieces.push(c);
+    }
+
+    pieces.push(hsb);
+
+    const finalFilter = pieces.join(" ").trim();
     document.documentElement.style.filter = finalFilter;
   }
 
-  // ✅ FIXED RESET FUNCTION (clears everything fully)
+  // === RESET FILTERS (FULL RESET) ===
   function resetFilters() {
-    // remove filters
+    // Remove filters
     document.documentElement.style.filter = "";
 
-    // restore all text colors modified during contrast fixing
-    contrastFailures.forEach((f) => {
-      if (f.element) f.element.style.color = "";
+    // Restore all contrast-fixed elements
+    contrastFailures.forEach(f => {
+      if (f.element) {
+        f.element.style.color = "";
+        f.element.style.outline = "";
+      }
     });
 
-    // clear highlights & labels
+    // Clear highlights and labels
     clearHighlights();
 
-    // reset arrays
+    // Reset arrays
     contrastFailures = [];
     numberLabels = [];
+
+    // Remove injected SVGs (optional full reset)
+    const svgDefs = document.getElementById("colorblind-svg-defs");
+    const inlineSvg = document.getElementById("colorblind-svg-defs-inline");
+    if (svgDefs) svgDefs.remove();
+    if (inlineSvg) inlineSvg.remove();
+    inlineSvgInserted = false;
   }
 
-  // =================== SVG DEFINITIONS ===================
+  // === SVG DEFINITIONS ===
   async function insertSVGDefs() {
     if (document.getElementById("colorblind-svg-defs")) return;
     const url = chrome.runtime.getURL("filters/colorblind.svg");
     const res = await fetch(url);
-    if (!res.ok) throw new Error("SVG fetch failed");
+    if (!res.ok) throw new Error("SVG fetch failed: " + res.status);
     const svgText = await res.text();
 
     const container = document.createElement("div");
@@ -94,18 +126,18 @@ if (!window.colorAccessibilityInjected) {
     container.style.width = "0";
     container.style.height = "0";
     container.style.overflow = "hidden";
-    container.style.pointerEvents = "none";
     container.style.opacity = "0";
+    container.style.pointerEvents = "none";
     container.innerHTML = svgText;
     (document.body || document.documentElement).appendChild(container);
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise(r => setTimeout(r, 10));
   }
 
   async function insertInlineSVGDefs() {
     if (document.getElementById("colorblind-svg-defs-inline")) return;
     const url = chrome.runtime.getURL("filters/colorblind.svg");
     const res = await fetch(url);
-    if (!res.ok) throw new Error("Could not fetch SVG defs: " + res.status);
+    if (!res.ok) throw new Error("SVG fetch failed: " + res.status);
     const svgText = await res.text();
 
     const container = document.createElement("div");
@@ -114,14 +146,14 @@ if (!window.colorAccessibilityInjected) {
     container.style.width = "0";
     container.style.height = "0";
     container.style.overflow = "hidden";
-    container.style.pointerEvents = "none";
     container.style.opacity = "0";
+    container.style.pointerEvents = "none";
     container.innerHTML = svgText;
     (document.body || document.documentElement).appendChild(container);
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise(r => setTimeout(r, 10));
   }
 
-  // =================== WCAG CONTRAST CHECKER ===================
+  // === CONTRAST CHECKER (WCAG) ===
   function getRGBValues(color) {
     const ctx = document.createElement("canvas").getContext("2d");
     ctx.fillStyle = color;
@@ -131,7 +163,7 @@ if (!window.colorAccessibilityInjected) {
   }
 
   function relativeLuminance(rgb) {
-    const sRGB = rgb.map((v) => {
+    const sRGB = rgb.map(v => {
       v /= 255;
       return v <= 0.03928
         ? v / 12.92
@@ -164,7 +196,8 @@ if (!window.colorAccessibilityInjected) {
     const textElements = document.querySelectorAll(
       "p, span, div, a, h1, h2, h3, h4, h5, h6"
     );
-    textElements.forEach((el) => {
+
+    textElements.forEach(el => {
       const style = getComputedStyle(el);
       const fg = style.color;
       const bg = getBackgroundColor(el);
@@ -172,11 +205,7 @@ if (!window.colorAccessibilityInjected) {
 
       if (ratio < 4.5) {
         const index = contrastFailures.length + 1;
-        contrastFailures.push({
-          element: el,
-          tag: el.tagName.toLowerCase(),
-          ratio,
-        });
+        contrastFailures.push({ element: el, tag: el.tagName.toLowerCase(), ratio });
         el.style.outline = "2px dashed deeppink";
 
         const rect = el.getBoundingClientRect();
@@ -200,15 +229,15 @@ if (!window.colorAccessibilityInjected) {
   }
 
   function clearHighlights() {
-    contrastFailures.forEach((f) => {
+    contrastFailures.forEach(f => {
       if (f.element) f.element.style.outline = "";
     });
     contrastFailures = [];
-    numberLabels.forEach((label) => label.remove());
+    numberLabels.forEach(label => label.remove());
     numberLabels = [];
   }
 
-  // =================== FIXING LOGIC ===================
+  // === AUTO & SINGLE FIX ===
   function fixAllContrastIssues() {
     contrastFailures.forEach((f, i) => fixSingleContrast(i));
   }
@@ -238,5 +267,14 @@ if (!window.colorAccessibilityInjected) {
     el.style.color = `rgb(${r}, ${g}, ${b})`;
     el.style.outline = "";
     if (numberLabels[index]) numberLabels[index].remove();
+  }
+
+  function scrollToFailure(index) {
+    const fail = contrastFailures[index];
+    if (fail && fail.element) {
+      fail.element.scrollIntoView({ behavior: "smooth", block: "center" });
+      fail.element.style.backgroundColor = "yellow";
+      setTimeout(() => (fail.element.style.backgroundColor = ""), 1500);
+    }
   }
 }
