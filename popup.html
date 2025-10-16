@@ -1,88 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>HueMate</title>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    body { font-family: sans-serif; padding: 15px; width: 250px; }
-    label { display: block; margin-top: 10px; }
-    input[type="range"] { width: 100%; }
-    select { width: 100%; margin-top: 5px; }
-    .buttons { margin-top: 15px; display: flex; gap: 5px; justify-content: space-between; flex-wrap: wrap; }
-    #palette { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-    .color { width: 20px; height: 20px; border: 1px solid #ccc; }
-    .red { background: red; }
-    .green { background: green; }
-    .blue { background: blue; }
-    .yellow { background: yellow; }
-    .magenta { background: magenta; }
-    .cyan { background: cyan; }
-    .gray { background: gray; }
-    .black { background: black; }
-    hr { margin: 15px 0; }
-  </style>
 </head>
 <body>
-  <h2>HueMate</h2>
+  <div class="popup-container">
 
-  
-  <label for="simulationMode">🎨 Simulation Mode</label>
-  <select id="simulationMode">
-    <option value="none">None</option>
-    <option value="protanopia">Protanopia</option>
-    <option value="deuteranopia">Deuteranopia</option>
-    <option value="tritanopia">Tritanopia</option>
-  </select>
+    <h2>HueMate</h2>
 
-  <label for="correctionMode">🧩 Correction Mode (Daltonization)</label>
-  <select id="correctionMode">
-    <option value="none">None</option>
-    <option value="protanopia">Protanopia Correction</option>
-    <option value="deuteranopia">Deuteranopia Correction</option>
-    <option value="tritanopia">Tritanopia Correction</option>
-  </select>
-
-  <!-- Sliders -->
-  <label>Hue: <span id="hueVal">0°</span></label>
-  <input type="range" id="hue" min="0" max="360" value="0">
-
-  <label>Saturation: <span id="satVal">100%</span></label>
-  <input type="range" id="saturation" min="50" max="200" value="100">
-
-  <label>Brightness: <span id="brightVal">100%</span></label>
-  <input type="range" id="brightness" min="50" max="200" value="100">
-
-  <!-- Buttons -->
-  <div class="buttons">
-    <button id="reset">Reset</button>
-    <button id="save">Save</button>
-    <button id="checkContrast">Check Contrast</button>
-  </div>
-
-  <!-- Auto-Fix & Contrast List -->
-  <label>
-    <input type="checkbox" id="autoFixToggle"> Auto-Fix Contrast
-  </label>
-
-  <h3>Low Contrast Elements</h3>
-  <ul id="contrastList" style="max-height:100px;overflow-y:auto;padding-left:15px;"></ul>
-
-  <hr>
-
-  <!-- Saved Profiles -->
-  <h3>Saved Profiles</h3>
-  <div class="profile-manager">
-    <select id="profiles" style="width:100%;"></select>
-    <div style="display:flex; gap:5px; margin-top:5px;">
-      <button id="loadProfile" style="flex:1;">Load</button>
-      <button id="deleteProfile" style="flex:1;">Delete</button>
+    <!-- Dark Mode -->
+    <div class="card">
+      <div class="toggle-container">
+        <label class="switch">
+          <input type="checkbox" id="darkModeToggle">
+          <span class="slider round"></span>
+        </label>
+        <span>Dark Mode</span>
+      </div>
     </div>
+
+    <!-- Simulation & Correction -->
+    <div class="card">
+      <label for="simulationMode">Simulation Mode</label>
+      <select id="simulationMode">
+        <option value="none">None</option>
+        <option value="protanopia">Protanopia</option>
+        <option value="deuteranopia">Deuteranopia</option>
+        <option value="tritanopia">Tritanopia</option>
+      </select>
+
+      <label for="correctionMode">Correction Mode</label>
+      <select id="correctionMode">
+        <option value="none">None</option>
+        <option value="protanopia">Protanopia Correction</option>
+        <option value="deuteranopia">Deuteranopia Correction</option>
+        <option value="tritanopia">Tritanopia Correction</option>
+      </select>
+    </div>
+
+    <!-- Sliders -->
+    <div class="card">
+      <label>Hue: <span id="hueVal">0°</span></label>
+      <input type="range" id="hue" min="0" max="360" value="0">
+
+      <label>Saturation: <span id="satVal">100%</span></label>
+      <input type="range" id="saturation" min="50" max="200" value="100">
+
+      <label>Brightness: <span id="brightVal">100%</span></label>
+      <input type="range" id="brightness" min="50" max="200" value="100">
+    </div>
+
+    <!-- Buttons -->
+    <div class="card buttons-card">
+      <button id="reset">Reset</button>
+      <button id="save">Save</button>
+      <button id="checkContrast">Check</button>
+    </div>
+
+    <!-- Auto-fix -->
+    <div class="card">
+      <label class="checkbox-label">
+        <input type="checkbox" id="autoFixToggle"> Auto-Fix Contrast
+      </label>
+    </div>
+
+    <!-- Low contrast list -->
+    <div class="card">
+      <ul id="contrastList"></ul>
+    </div>
+
+    <!-- Saved Profiles -->
+    <div class="card">
+      <select id="profiles"></select>
+      <div class="profile-buttons">
+        <button id="loadProfile">Load</button>
+        <button id="deleteProfile">Delete</button>
+      </div>
+    </div>
+
   </div>
-
-  <hr>
-
-  
 
   <script src="popup.js"></script>
 </body>

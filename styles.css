@@ -1,171 +1,185 @@
-/* === General Styling === */
+/* === Base & Font === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
 body {
-  font-family: "Poppins", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  width: 300px;
-  padding: 18px;
+  font-family: 'Inter', sans-serif;
   margin: 0;
+  padding: 10px;
+  width: 320px;
+  background: #f5f5f7;
   color: #2a2a2a;
-  background: linear-gradient(145deg, #f5f3ff, #fdf6f0, #f0fbff); /* Soft pastel gradient */
-  background-size: 400% 400%;
-  animation: subtleMove 12s ease infinite;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   transition: all 0.3s ease;
 }
 
-@keyframes subtleMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+body.dark {
+  background: #1e1e1e;
+  color: #e0e0e0;
 }
 
+.popup-container {
+  padding: 8px;
+}
+
+/* Headings */
 h2 {
   text-align: center;
   font-weight: 600;
+  margin-bottom: 12px;
   font-size: 18px;
-  letter-spacing: 0.5px;
-  margin-bottom: 20px;
-  color: #1a1a1a;
 }
 
-h3 {
-  color: #444;
-  margin-top: 18px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 4px;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* === Labels & Controls === */
+body.dark .card {
+  background: #2a2a2a;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+/* Labels & inputs */
 label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: block;
   font-size: 13px;
-  margin-bottom: 6px;
-  color: #333;
+  margin: 6px 0 4px;
 }
 
-select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* === Range Sliders === */
 input[type="range"] {
   width: 100%;
   height: 6px;
-  background: linear-gradient(to right, #c7d2fe, #a5f3fc);
   border-radius: 10px;
+  background: linear-gradient(90deg, #818cf8, #38bdf8);
   outline: none;
-  opacity: 0.8;
-  transition: opacity 0.2s, background 0.3s;
-}
-
-input[type="range"]:hover {
-  opacity: 1;
+  margin-bottom: 8px;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  background: #6366f1; /* Indigo tone */
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border: 2px solid #6366f1;
   border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
   cursor: pointer;
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  background: #6366f1;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border: 2px solid #6366f1;
   border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
   cursor: pointer;
 }
 
-/* === Buttons === */
-button {
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  border: none;
+/* Select */
+select {
+  width: 100%;
+  padding: 6px;
   border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 13px;
+  margin-bottom: 8px;
+  border: 1px solid #ccc;
 }
 
-button:hover {
-  transform: translateY(-1px);
+body.dark select {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+/* Buttons */
+button {
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  transition: 0.2s;
 }
 
 #reset, #deleteProfile {
-  background: #f3f4f6;
-  color: #333;
-  border: 1px solid #e5e7eb;
+  background: #e5e5e5;
+  color: #222;
 }
 
-#reset:hover, #deleteProfile:hover {
-  background: #e5e7eb;
+#save, #loadProfile, #checkContrast {
+  background: linear-gradient(135deg, #6366f1, #38bdf8);
+  color: #fff;
 }
 
-#save, #loadProfile {
-  background: linear-gradient(135deg, #818cf8, #38bdf8);
-  color: white;
-  box-shadow: 0 2px 6px rgba(99,102,241,0.4);
+button:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
 }
 
-#save:hover, #loadProfile:hover {
-  background: linear-gradient(135deg, #6366f1, #0ea5e9);
-}
-
-/* === Profile Section === */
-.profile-manager {
+/* Button groups */
+.buttons-card, .profile-buttons {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
 }
 
-.profile-manager select {
-  flex: 1;
+/* Toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
 }
 
-.profile-manager button {
-  padding: 8px 10px;
+.switch input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: 0.3s;
+}
+
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+input:checked + .slider { background-color: #6366f1; }
+input:checked + .slider:before { transform: translateX(16px); }
+
+/* Auto-fix toggle */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
 }
 
-/* === List Styling === */
-ul {
-  padding-left: 20px;
-  font-size: 13px;
-  color: #333;
+/* Contrast list */
+#contrastList {
+  max-height: 80px;
+  overflow-y: auto;
+  padding-left: 12px;
+  font-size: 12px;
 }
 
-li {
-  margin-bottom: 6px;
-  list-style: disc;
-}
-
-/* === Toggle === */
-#autoFixToggle {
-  margin-right: 6px;
-}
-
-/* === Section Divider === */
-hr {
-  border: 0;
-  border-top: 1px solid #ddd;
-  margin: 12px 0;
+#contrastList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
 }
