@@ -22,8 +22,6 @@ HueMate is a Chrome Extension designed to enhance web accessibility for users wi
 * Real-Time Page Manipulation
   Applies filters instantly without page reload using content scripts.
 
----
-
 ## 🧠 How It Works
 
 1. The popup UI allows users to select simulation modes, correction modes, and adjust hue, saturation, and brightness.
@@ -39,8 +37,6 @@ HueMate is a Chrome Extension designed to enhance web accessibility for users wi
 * JavaScript
 * Chrome Extensions API (Manifest V3)
 * SVG Filters
-* WCAG Accessibility Standards
-* DOM Manipulation
 
 ## 📈 Impact
 
@@ -57,6 +53,3 @@ HueMate is a Chrome Extension designed to enhance web accessibility for users wi
 ## 👩‍💻 Author
 
 Marie Shalini S
-
-
-Just say which one.
