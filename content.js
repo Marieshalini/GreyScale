@@ -60,11 +60,12 @@ if (!window.colorAccessibilityInjected) {
       tritanopia: "url(#tritanopia)",
     };
 
-    const correctionMatrices = {
-      protanopia: "contrast(120%) saturate(120%) hue-rotate(15deg)",
-      deuteranopia: "contrast(120%) saturate(110%) hue-rotate(-15deg)",
-      tritanopia: "contrast(120%) saturate(130%) hue-rotate(25deg)",
-    };
+   const correctionFilters = {
+  protanopia: "url(#protanopia-correct)",
+  deuteranopia: "url(#deuteranopia-correct)",
+  tritanopia: "url(#tritanopia-correct)"
+};
+
 
     let pieces = [];
 
@@ -74,9 +75,10 @@ if (!window.colorAccessibilityInjected) {
     }
 
     if (correctionMode && correctionMode !== "none") {
-      const c = correctionMatrices[correctionMode];
-      if (c) pieces.push(c);
-    }
+  const c = correctionFilters[correctionMode];
+  if (c) pieces.push(c);
+}
+
 
     pieces.push(hsb);
 
@@ -253,7 +255,13 @@ if (!window.colorAccessibilityInjected) {
     const Lbg = relativeLuminance(bg);
 
     let [r, g, b] = fg;
-    let step = Lbg > 0.5 ? -10 : 10;
+
+const bgIsImage =
+  style.backgroundImage !== "none" ||
+  getComputedStyle(el.parentElement).backgroundImage !== "none";
+
+let step = bgIsImage ? -10 : (Lbg > 0.5 ? -10 : 10);
+
 
     for (let i = 0; i < 20; i++) {
       const newColor = `rgb(${r}, ${g}, ${b})`;
