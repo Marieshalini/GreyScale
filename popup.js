@@ -4,10 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const sat = document.getElementById("saturation");
   const bright = document.getElementById("brightness");
 
-  const simulationMode = document.getElementById("simulationMode"); // 👈 added separate simulation dropdown
-  const correctionMode = document.getElementById("correctionMode"); // 👈 added separate correction dropdown
+  const simulationMode = document.getElementById("simulationMode");
+  const correctionMode = document.getElementById("correctionMode");
 
   const autoFixToggle = document.getElementById("autoFixToggle");
+  const darkModeToggle = document.getElementById("darkModeToggle");
 
   const hueVal = document.getElementById("hueVal");
   const satVal = document.getElementById("satVal");
@@ -22,7 +23,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const checkContrastBtn = document.getElementById("checkContrast");
   const contrastList = document.getElementById("contrastList");
 
-  // === 2. HELPER FUNCTIONS ===
+  // === 2. DARK MODE TOGGLE ===
+  chrome.storage.sync.get({ darkMode: false }, (data) => {
+    if (data.darkMode) {
+      document.body.classList.add("dark");
+      darkModeToggle.checked = true;
+    } else {
+      document.body.classList.remove("dark");
+      darkModeToggle.checked = false;
+    }
+  });
+
+  darkModeToggle.addEventListener("change", () => {
+    if (darkModeToggle.checked) {
+      document.body.classList.add("dark");
+      chrome.storage.sync.set({ darkMode: true });
+    } else {
+      document.body.classList.remove("dark");
+      chrome.storage.sync.set({ darkMode: false });
+    }
+  });
+
+  // === 3. HELPER FUNCTIONS ===
   function updateLabels() {
     if (hueVal) hueVal.textContent = `${hue.value}°`;
     if (satVal) satVal.textContent = `${sat.value}%`;
@@ -87,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === 3. EVENT LISTENERS ===
+  // === 4. EVENT LISTENERS ===
   [hue, sat, bright, simulationMode, correctionMode].forEach(input => {
     if (input) {
       input.addEventListener("input", () => {
@@ -99,28 +121,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (applyBtn) applyBtn.addEventListener("click", () => sendMessage("apply"));
 
-  // === RESET BUTTON ===
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
-      // Reset all UI values
       hue.value = 0;
       sat.value = 100;
       bright.value = 100;
       simulationMode.value = "none";
       correctionMode.value = "none";
       updateLabels();
-
-      // Send reset to content.js
       sendMessage("reset");
 
-      // Clear last used & saved state
       chrome.storage.sync.remove(["lastUsed", "hue", "saturation", "brightness", "simulationMode", "correctionMode"], () => {
         console.log("All settings cleared.");
       });
     });
   }
 
-  // === SAVE PROFILE ===
   if (saveBtn) {
     saveBtn.addEventListener("click", () => {
       const now = new Date();
@@ -147,7 +163,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === LOAD PROFILE ===
   if (loadProfileBtn) {
     loadProfileBtn.addEventListener("click", () => {
       const profileName = profilesDropdown?.value;
@@ -168,7 +183,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === DELETE PROFILE ===
   if (deleteProfileBtn) {
     deleteProfileBtn.addEventListener("click", () => {
       const profileName = profilesDropdown?.value;
@@ -186,7 +200,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === 4. LOAD SAVED SETTINGS ===
   chrome.storage.sync.get(["lastUsed"], (data) => {
     const lastUsed = data.lastUsed;
     if (lastUsed) {
@@ -224,11 +237,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadProfilesList();
 
-  // === 5. WCAG CONTRAST CHECK ===
+  // === 5. WCAG CONTRAST CHECK FIXED ===
   if (checkContrastBtn) {
     checkContrastBtn.addEventListener("click", () => {
       chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
         const tabId = tabs[0].id;
+
         chrome.tabs.sendMessage(tabId, { action: "checkContrast" }, response => {
           if (!contrastList) return;
           contrastList.innerHTML = "";
@@ -242,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             response.failures.forEach((item, i) => {
               const li = document.createElement("li");
-              li.textContent = `#${i + 1} – Contrast: ${item.ratio.toFixed(2)} `;
+              li.textContent = `#${i + 1} – Contrast: ${item.ratio.toFixed(2)}`;
               li.style.cursor = "pointer";
 
               const fixBtn = document.createElement("button");
